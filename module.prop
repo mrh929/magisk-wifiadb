@@ -1,0 +1,6 @@
+id=magisk-wifiadb
+name=MagiskWifiAdb
+version=0.0.1
+versionCode=001
+author=mrh929
+description=Enable WiFi Adb on boot.
