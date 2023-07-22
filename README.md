@@ -1,14 +1,14 @@
 # Magisk
 
-A magisk module to enable WiFi ADB on boot.
+A Magisk module that enables continuous availability of WiFi ADB service without requiring any Android app.
 
 ## Usage
 
 Enable this module in magisk.
 
-## Principles
+## How Does It Work
 
-By setting properties in /common/service.sh to enable WiFi ADB:
+By setting properties in Android to enable WiFi ADB:
 
 ``` shell
 su
