@@ -8,13 +8,13 @@ MODDIR=${0%/*}
 
 # This script will be executed in late_start service mode
 (
-  until [ $(getprop sys.boot_completed) -eq 1 ]; do
+  until [ "$(getprop sys.boot_completed)" -eq 1 ]; do
     sleep 5
   done
 
   while true; do
 
-    until [ $(getprop service.adb.tcp.port) -eq 0 ]; do
+    while [ "$(getprop service.adb.tcp.port)" = "5555" ]; do
       sleep 5
     done
 
