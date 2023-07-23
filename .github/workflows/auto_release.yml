@@ -1,52 +1,31 @@
-name: Auto Release
+name: Auto Zip and Release
 
 on:
   pull_request:
-    branches: [ "master" ]
-  push:
-    branches: [ "develop" ]
+    branches:
+      - master
 
-
-
-
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build:
-    runs-on: ubuntu-18.04
+  zip-and-release:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Install zip
-      run: sudo apt-get update && sudo apt-get -y install zip
+      - name: process
+        id: process
+        run: |
+          VERSION=`cat module.prop | grep -oP "(?<=version=).*" | cut -d "=" -f2`
+          GITHUB_SHA=${{github.sha}}
+          GITHUB_SHORT_SHA=${GITHUB_SHA:0:7}
+          FULL_TAG="alpha-$VERSION-$GITHUB_SHORT_SHA"
+            
+          echo "::set-output name=tag::$FULL_TAG"
+          zip -r magisk-wifiadb.zip ./*
 
-    - name: Create Zip Archive
-      run: |
-        find . -type f -not -path '*/\.*' -exec zip release_files.zip {} \+
-        echo "::set-output name=zip_path::release_files.zip"
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.sha }}
-        release_name: Release ${{ github.sha }}
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.create_zip.outputs.zip_path }}
-        asset_name: release_files.zip
-        asset_content_type: application/zip
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "magisk-wifiadb.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.process.outputs.tag }}
+          prerelease: true
