@@ -9,19 +9,28 @@ This way your Wireless debugging(WiFi ADB) will be secure and private(SAFE)
 
 ## Feature
 
-- Ensure WiFi ADB always-ON
-
-- Disable WiFi ADB in real time
-  
-  If the module is started on boot, **clicking the button** to open the module and close the module in `Magisk Manager` will directly **modify the status** of the WiFi ADB.
+- Configure WiFiADB to be activated on boot.
+- Toggle WiFiADB - ON/OFF using Magisk Manager App.
 
 ## Usage
 
-Enable this module in magisk.
+**Configuring WiFiADB to start on boot :**
+Download the latest release of the module.
+Install it manually using the Magisk Manager App
+Reboot Device.
+Enable WiFiADB module in magisk, If its not already enabled after reboot.
+Reboot Device
+
+**Toggling WiFiADB ON/OFF :**
+Open Magisk Manager App -> Modules
+turning the module switch to OFF will disable WiFiADB  (Device reboot not required)
+turning the module switch to ON will enable WiFiADB  (Device reboot not required)
+
+Note : If you accidentally happen to reboot device when this module switch is turned OFF then WiFiADB will not be started on boot.
 
 ### Configuration
 
-You can configurure module setting by creating a `config` file in `module root dir` (usually in `/data/adb/modules/magisk-wifiadb`).
+You can configure module setting by creating a `config` file in `module root dir` (usually in `/data/adb/modules/magisk-wifiadb`).
 
 And write the following variables:
 
@@ -33,6 +42,21 @@ ENABLE_LOG=[1 (for enable) / 0 (for disable)]
 ### Logs
 
 If you set `ENABLE_LOG=1`, the logs will be saved in `/data/local/tmp/wifiadb.log`.
+
+
+### NOOB STEPS to configure your private port and enabling log
+
+```
+adb shell
+su
+cd /data/adb/modules/magisk-wifiadb/
+echo -e "ADB_PORT=1234\nENABLE_LOG=1" >> config
+```
+
+**Note :**
+grant root permission when prompted on the device.
+1234 is the eg port, replace it with your own secret port number as your wireless debugging port.
+
 
 ## How Does It Work
 
