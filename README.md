@@ -15,15 +15,22 @@ This way your Wireless debugging(WiFi ADB) will be secure and private(SAFE)
 ## Usage
 
 **Configuring WiFiADB to start on boot :**
+
 Download the latest release of the module.
+
 Install it manually using the Magisk Manager App
+
 Reboot Device.
+
 Enable WiFiADB module in magisk, If its not already enabled after reboot.
+
 Reboot Device
 
 **Toggling WiFiADB ON/OFF :**
 Open Magisk Manager App -> Modules
+
 turning the module switch to OFF will disable WiFiADB  (Device reboot not required)
+
 turning the module switch to ON will enable WiFiADB  (Device reboot not required)
 
 Note : If you accidentally happen to reboot device when this module switch is turned OFF then WiFiADB will not be started on boot.
