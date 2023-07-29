@@ -4,8 +4,6 @@ A Magisk module that adds the equivalent of "Wireless(WiFi) Debugging Option" to
 
 With this module one can have WiFi ADB enabled at all times irresepctive of whether an app is using it(ADB) or not.
 
-A default PORT for wireless debugging is 5555. But with this module you can configure the PORT to one that only YOU know.
-This way your Wireless debugging(WiFi ADB) will be secure and private(SAFE)
 
 ## Feature
 
@@ -19,8 +17,9 @@ This way your Wireless debugging(WiFi ADB) will be secure and private(SAFE)
 **Configuring WiFiADB to start on boot :**
 
 - Download the latest release of the module.
-- Install it manually using the Magisk Manager App
+- Install it manually using the Magisk Manager App.
 - Enable WiFiADB module in magisk.
+- Reboot Your Device.
 - Your Wireless Debugging is enabled.
 
 **Commands to establish wireless ADB connection**
@@ -41,8 +40,8 @@ STEPS
 
 You can configure module settings by creating a `config` file in `module root dir` (usually in `/data/adb/modules/magisk-wifiadb`) with the following lines of code.
 ```
-ADB_PORT=1234 //your custom port no.
-ENABLE_LOG=1 // 0 to disable logging.
+ADB_PORT=1234 # your custom port no.
+ENABLE_LOG=1 # 0 to disable logging.
 ```
 
 **Commands to add the above lines to the config file.**
@@ -51,7 +50,7 @@ ENABLE_LOG=1 // 0 to disable logging.
 adb shell
 su
 cd /data/adb/modules/magisk-wifiadb/
-echo -e "ADB_PORT=1234\nENABLE_LOG=1" >> config
+echo -e "ADB_PORT=1234\nENABLE_LOG=1" > config
 ```
 
 
