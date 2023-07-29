@@ -34,7 +34,6 @@ Open Magisk Manager App -> Modules
 use the Module switch to enable / disable WifiADB
 
 Note : If you accidentally happen to reboot device when this module switch is turned OFF then WiFiADB will not be started on boot.
-STEPS
 
 ## Configuration
 
@@ -64,6 +63,8 @@ echo -e "ADB_PORT=1234\nENABLE_LOG=1" > config
 Logs if 'enabled' can be viewed at `/data/local/tmp/wifiadb.log`.
 
 ## How Does It Work (under the hood)
+
+### WiFi adb
 
 By setting properties in Android to enable WiFi ADB:
 
