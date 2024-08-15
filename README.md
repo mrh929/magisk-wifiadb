@@ -74,3 +74,11 @@ setprop service.adb.tcp.port 5555
 stop adbd
 start adbd
 ```
+
+As a result, we can achieve the same outcome using adb without the need for installing a plugin, because AOSP offers a [mechanism](https://stackoverflow.com/a/16517098) to set persistent system properties:
+
+```shell
+su
+setprop persist.service.adb.tcp.port 5555
+reboot
+```
