@@ -9,15 +9,10 @@ MODDIR=${0%/*}
 # these environment variables below can be customized
 # --------------------------------------------------------
 
-
-
 # default definitions
 ENABLE_LOG=""
 ADB_PORT=""
 STATUS_CHK_FREQUENCY=""
-
-
-
 
 # --------------------------------------------------------
 
@@ -46,20 +41,30 @@ stop_adb() {
 }
 
 check_adb_status() {
-    [ "$(getprop service.adb.tcp.port)" = "$ADB_PORT" ]
+    if [ "$(getprop init.svc.adbd)" != "running" ]; then
+        return 0
+    fi
+
+    if [ "$(getprop service.adb.tcp.port)" != "$ADB_PORT" ]; then
+        return 0
+    fi
+
+    return 1
 }
 
 maintain_adb_availability() {
     while true; do
-        print_log "Checking ADB status..."
+        # print_log "Checking ADB status..."
 
         if [ -e "${MODDIR}/disable" ]; then
-            if check_adb_status; then
+            check_adb_status
+            if [ $? -eq 1 ]; then
                 print_log "Module is disabled, stopping ADB..."
                 stop_adb
             fi
         else
-            if ! check_adb_status; then
+            check_adb_status
+            if [ $? -eq 0 ]; then
                 print_log "Module is enabled, starting ADB..."
                 start_adb
             fi
@@ -80,14 +85,13 @@ load_config() {
 }
 
 parse_config() {
-    if [[ ! "$ADB_PORT" =~ $ADB_PORT_PATTERN ]]; then
+    if ! echo "$ADB_PORT" | grep -Eq "$ADB_PORT_PATTERN"; then
         print_log "ADB_PORT parse failed, set to default value"
         ADB_PORT=$DEFAULT_ADB_PORT
     fi
     print_log "ADB_PORT value: $ADB_PORT"
 
-
-    if [[ ! "$STATUS_CHK_FREQUENCY" =~ $STATUS_CHK_FREQUENCY_PATTERN ]]; then
+    if ! echo "$STATUS_CHK_FREQUENCY" | grep -Eq "$STATUS_CHK_FREQUENCY_PATTERN"; then
         print_log "STATUS_CHK_FREQUENCY parse failed, set to default value"
         STATUS_CHK_FREQUENCY=$DEFAULT_STATUS_CHK_FREQUENCY
     fi
@@ -102,5 +106,7 @@ parse_config() {
 
     load_config
     parse_config
+
+    print_log "---- magisk-wifiadb started ----"
     maintain_adb_availability
 ) &
