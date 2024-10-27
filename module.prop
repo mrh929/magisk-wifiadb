@@ -1,6 +1,6 @@
 id=magisk-wifiadb
 name=MagiskWiFiADB
-version=1.0.2
-versionCode=003
+version=1.0.3
+versionCode=004
 author=mrh929
 description=A module that maintains ADB availability.
