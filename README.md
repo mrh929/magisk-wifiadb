@@ -1,76 +1,87 @@
 # Magisk-WiFiADB
 
-A Magisk module that adds the equivalent of "Wireless(WiFi) Debugging Option" to Stock ROM's running Magisk.
+Magisk-WiFiADB is a Magisk module that adds the equivalent of the "Wireless (WiFi) Debugging Option" to Stock ROMs running Magisk.
 
-With this module one can have WiFi ADB enabled at all times irresepctive of whether an app is using it(ADB) or not.
+With this module, you can have WiFi ADB enabled at all times, rather than use an app or turn it on in the Android settings every time before adb debugging.
 
+## Features
 
-## Feature
-
-- Configure WiFiADB to be activated on boot.
-- Toggle WiFiADB - ON/OFF using Magisk Manager App.
-- Configure your OWN private custom port for your device.
-- Enable log to view WiFiADB status.
+- Configure WiFi ADB to activate on boot.
+- Toggle WiFi ADB ON/OFF using the Magisk Manager app.
+- Set your own private custom port for your device.
+- Enable logging to view the WiFi ADB status.
 
 ## Usage
 
-**Configuring WiFiADB to start on boot :**
+**Configuring WiFi ADB to start on boot:**
 
-- Download the latest release of the module.
-- Install it manually using the Magisk Manager App.
-- Enable WiFiADB module in magisk.
-- Reboot Your Device.
-- Your Wireless Debugging is enabled.
+1. Download the latest release of the module.
+2. Manually install it using the Magisk Manager app.
+3. Enable the WiFi ADB module in Magisk.
+4. Reboot your device.
+5. Your wireless debugging is now enabled.
 
-**Commands to establish wireless ADB connection**
+**Commands to establish a wireless ADB connection:**
 
-Connect using the command `adb connect your-device-IP:1234`     -      once connected all other adb commands work as they should.
+Connect using the command:
+```bash
+adb connect your-device-IP:1234
+```
+Once connected, all other ADB commands will work as expected.
 
-Disconnect using the command `adb disconnect`
+Disconnect using the command:
+```bash
+adb disconnect
+```
 
-**Toggling WiFiADB ON/OFF :**
-Open Magisk Manager App -> Modules
+**Toggling WiFi ADB ON/OFF:**
+Open the Magisk Manager app -> Modules
 
-use the Module switch to enable / disable WifiADB
+Use the module switch to enable/disable WiFi ADB.
 
-Note : If you accidentally happen to reboot device when this module switch is turned OFF then WiFiADB will not be started on boot.
+**Note:** If you accidentally reboot the device while this module switch is turned OFF, WiFi ADB will not start on boot.
 
 ## Configuration
 
-You can configure module settings by creating a `config` file in `module root dir` (usually in `/data/adb/modules/magisk-wifiadb`) with the following lines of code.
+You can configure module settings by creating a `config` file in the module root directory (usually located at `/data/adb/modules/magisk-wifiadb`) with the following lines of code:
 ```
-ADB_PORT=1234 # your custom port no.
-ENABLE_LOG=1 # 0 to disable logging.
+ADB_PORT=1234
+ENABLE_LOG=1
 ```
 
-**Commands to add the above lines to the config file.**
+**Supported configurations:**
+The table below shows all the environment variables to configure this module:
 
-```
+| Name                   | Range              | Comment                     |
+|------------------------|-------------------|-----------------------------|
+| ENABLE_LOG             | 1 for ON / 0 for OFF | ADB log switch              |
+| ADB_PORT               | 1~65535           | Your custom ADB port number |
+| STATUS_CHK_FREQUENCY   | Any integer above zero | How often the script checks the status of ADB |
+
+**Commands to add the above lines to the config file:**
+```bash
 adb shell
 su
 cd /data/adb/modules/magisk-wifiadb/
-echo -e "ADB_PORT=1234\nENABLE_LOG=1" > config
+echo -e "ADB_PORT=1234\nENABLE_LOG=1" > config  # an example 
 ```
 
-
-**Note :**
-- grant root permission when prompted on the device.
-- 1234 is the eg port, replace it with your own secret port number as your wireless debugging port.
-
+**Note:**
+- Grant root permission when prompted on the device.
+- 1234 is an example port; replace it with your own secret port number for wireless debugging.
 
 ## Logs
 
-Logs if 'enabled' can be viewed at `/data/local/tmp/wifiadb.log`.
+If logging is enabled, logs can be viewed at `/data/local/tmp/wifiadb.log`.
 
-## How Does It Work (under the hood)
+## How Does It Work (Under the Hood)
 
-### WiFi adb
+### WiFi ADB
 
-By setting properties in Android to enable WiFi ADB:
-
+WiFi ADB is enabled by setting properties in Android:
 ```shell
 su
-setprop service.adb.tcp.port 5555
+setprop service.adb.tcp.port $adb_port_number
 stop adbd
 start adbd
 ```
