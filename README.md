@@ -56,7 +56,7 @@ The table below shows all the environment variables to configure this module:
 |------------------------|-------------------|-----------------------------|
 | ENABLE_LOG             | 1 for ON / 0 for OFF | ADB log switch              |
 | ADB_PORT               | 1~65535           | Your custom ADB port number |
-| STATUS_CHK_FREQUENCY   | Any integer above zero | How often the script checks the status of ADB |
+| STATUS_CHK_FREQUENCY   | Any integer above zero | How often (seconds) the script checks the status of ADB |
 
 **Commands to add the above lines to the config file:**
 ```bash
@@ -84,4 +84,30 @@ su
 setprop service.adb.tcp.port $adb_port_number
 stop adbd
 start adbd
+```
+
+### flow chart
+
+``` mermaid
+flowchart TD
+    A[Boot Completed] --> B[Load and Parse Configuration File; en_flag=0]
+    B --> C[Enter Loop]
+
+    subgraph MainLoop [Main Loop]
+        direction TB
+        C --> D{Is Module Enabled?}
+        
+        D -->|No| E{en_flag=1?}
+        E -->|Yes| Stop[Stop Wi-Fi ADB Service; en_flag=0]
+        E -->|No| Sleep[Sleep for Configured Interval]
+
+        D -->|Yes| F[en_flag=1]
+        F --> G{Is Wi-Fi ADB Running?}
+        G -->|No| Start[Start Wi-Fi ADB Service]
+        G -->|Yes| Sleep
+
+        Stop --> Sleep
+        Start --> Sleep
+        Sleep --> C
+    end
 ```

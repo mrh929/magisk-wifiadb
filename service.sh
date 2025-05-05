@@ -57,12 +57,16 @@ maintain_adb_availability() {
         # print_log "Checking ADB status..."
 
         if [ -e "${MODDIR}/disable" ]; then
-            check_adb_status
-            if [ $? -eq 1 ]; then
-                print_log "Module is disabled, stopping ADB..."
-                stop_adb
+            if [ $en_flag -eq 1 ]; then
+                check_adb_status
+                if [ $? -eq 1 ]; then
+                    print_log "Module is disabled, stopping ADB..."
+                    stop_adb
+                    en_flag=0
+                fi
             fi
         else
+            en_flag=1
             check_adb_status
             if [ $? -eq 0 ]; then
                 print_log "Module is enabled, starting ADB..."
@@ -106,6 +110,7 @@ parse_config() {
 
     load_config
     parse_config
+    en_flag=0
 
     print_log "---- magisk-wifiadb started ----"
     maintain_adb_availability
