@@ -1,112 +1,111 @@
 #!/system/bin/sh
-# Do NOT assume where your module will be located.
-# ALWAYS use $MODDIR if you need to know where this script
-# and module is placed.
-# This will make sure your module will still work
-# if Magisk change its mount point in the future
 MODDIR=${0%/*}
 
-# these environment variables below can be customized
-# --------------------------------------------------------
-
-# default definitions
+# ── defaults (override in $MODDIR/config) ──────────────────────────────────
 ENABLE_LOG=""
 ADB_PORT=""
 STATUS_CHK_FREQUENCY=""
 
-# --------------------------------------------------------
-
-# constant definitions
+# ── constants ───────────────────────────────────────────────────────────────
 DEFAULT_ADB_PORT="5555"
-DEFAULT_STATUS_CHK_FREQUENCY="1"
+DEFAULT_STATUS_CHK_FREQUENCY="5"
 ADB_PORT_PATTERN='^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$'
 STATUS_CHK_FREQUENCY_PATTERN='^([1-9]|10)$'
 
-# functions
+# ── helpers ──────────────────────────────────────────────────────────────────
 print_log() {
     [ "$ENABLE_LOG" != "1" ] && return
     echo "$(date '+[%Y-%m-%d %I:%M:%S]') $1" >> /data/local/tmp/wifiadb.log
 }
 
+# Enable TCP ADB + wireless-debugging settings so they survive reboots.
 start_adb() {
+    setprop persist.adb.tcp.port "$ADB_PORT"
     setprop service.adb.tcp.port "$ADB_PORT"
+    settings put global adb_wifi_enabled 1
     stop adbd
     start adbd
 }
 
 stop_adb() {
+    setprop persist.adb.tcp.port ""
     setprop service.adb.tcp.port ""
+    settings put global adb_wifi_enabled 0
     stop adbd
     start adbd
 }
 
+# Returns 0 if ADB needs (re)starting, 1 if everything is fine.
 check_adb_status() {
-    if [ "$(getprop init.svc.adbd)" != "running" ]; then
-        return 0
-    fi
+    local svc="$(getprop init.svc.adbd)"
+    local tcp="$(getprop service.adb.tcp.port)"
+    local ptcp="$(getprop persist.adb.tcp.port)"
 
-    if [ "$(getprop service.adb.tcp.port)" != "$ADB_PORT" ]; then
-        return 0
-    fi
+    [ "$svc" = "running" ] || { print_log "check: adbd not running"; return 0; }
+    [ "$tcp" = "$ADB_PORT" ] && return 1
+    [ "$ptcp" = "$ADB_PORT" ] && return 1
 
-    return 1
+    print_log "check: adbd running but no TCP port"
+    return 0
 }
 
 maintain_adb_availability() {
     while true; do
-        # print_log "Checking ADB status..."
-
         if [ -e "${MODDIR}/disable" ]; then
-            check_adb_status
-            if [ $? -eq 1 ]; then
-                print_log "Module is disabled, stopping ADB..."
-                stop_adb
-            fi
-        else
-            check_adb_status
-            if [ $? -eq 0 ]; then
-                print_log "Module is enabled, starting ADB..."
-                start_adb
-            fi
+            sleep $STATUS_CHK_FREQUENCY
+            continue
         fi
-
+        check_adb_status
+        if [ $? -eq 0 ]; then
+            print_log "ADB not ready — starting"
+            start_adb
+        fi
         sleep $STATUS_CHK_FREQUENCY
     done
 }
 
 load_config() {
-    CONFIG_PATH="${MODDIR}/config"
-    if [ -f "$CONFIG_PATH" ]; then
-        source "$CONFIG_PATH"
-        print_log "Config file loaded."
-    else
-        print_log "Config file not found."
-    fi
+    local cfg="${MODDIR}/config"
+    [ -f "$cfg" ] && . "$cfg"
 }
 
 parse_config() {
-    if ! echo "$ADB_PORT" | grep -Eq "$ADB_PORT_PATTERN"; then
-        print_log "ADB_PORT parse failed, set to default value"
+    if [ -z "$ADB_PORT" ]; then
+        ADB_PORT=$DEFAULT_ADB_PORT
+    elif ! echo "$ADB_PORT" | grep -Eq "$ADB_PORT_PATTERN"; then
+        print_log "ADB_PORT invalid — using default"
         ADB_PORT=$DEFAULT_ADB_PORT
     fi
-    print_log "ADB_PORT value: $ADB_PORT"
+    print_log "ADB_PORT=$ADB_PORT"
 
-    if ! echo "$STATUS_CHK_FREQUENCY" | grep -Eq "$STATUS_CHK_FREQUENCY_PATTERN"; then
-        print_log "STATUS_CHK_FREQUENCY parse failed, set to default value"
+    if [ -z "$STATUS_CHK_FREQUENCY" ]; then
+        STATUS_CHK_FREQUENCY=$DEFAULT_STATUS_CHK_FREQUENCY
+    elif ! echo "$STATUS_CHK_FREQUENCY" | grep -Eq "$STATUS_CHK_FREQUENCY_PATTERN"; then
+        print_log "STATUS_CHK_FREQUENCY invalid — using default"
         STATUS_CHK_FREQUENCY=$DEFAULT_STATUS_CHK_FREQUENCY
     fi
-    print_log "STATUS_CHK_FREQUENCY value: $STATUS_CHK_FREQUENCY"
+    print_log "STATUS_CHK_FREQUENCY=$STATUS_CHK_FREQUENCY"
 }
 
-# This script will be executed in late_start service mode
+# ── main (late_start service) ─────────────────────────────────────────────
 (
-    until [ "$(getprop sys.boot_completed)" -eq 1 ]; do
+    until [ "$(getprop sys.boot_completed)" = "1" ]; do
         sleep 1
     done
 
+    rm -f /data/local/tmp/wifiadb.log
     load_config
+    _ver=$(grep '^version=' "$MODDIR/module.prop" 2>/dev/null | cut -d= -f2)
+    print_log "---- MagiskWiFiADB ${_ver} started ----"
     parse_config
 
-    print_log "---- magisk-wifiadb started ----"
+    # Enable wireless ADB — AdbService will properly init network stack and start adbd
+    if [ ! -e "${MODDIR}/disable" ]; then
+        setprop persist.adb.tcp.port "$ADB_PORT"
+        settings put global adb_wifi_enabled 1
+        print_log "Boot-time: persist.adb.tcp.port=$ADB_PORT, adb_wifi_enabled=1"
+    fi
+    print_log "Entering monitor loop"
+
     maintain_adb_availability
 ) &

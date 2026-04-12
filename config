@@ -1,0 +1,11 @@
+# magisk-wifiadb config
+# Edit values here to customize behavior.
+
+# TCP ADB port (1-65535, default: 5555)
+ADB_PORT=5555
+
+# Monitor check interval in seconds (1-10, default: 5)
+STATUS_CHK_FREQUENCY=5
+
+# Enable logging to /data/local/tmp/wifiadb.log (1=on, empty=off)
+ENABLE_LOG=1
