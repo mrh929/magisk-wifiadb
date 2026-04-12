@@ -1,0 +1,34 @@
+CHANGELOG — MagiskWiFiADB
+=========================
+
+[1.2.0] - 2026-04-12
+
+  Added:
+  - config file for user-configurable settings (ADB_PORT, STATUS_CHK_FREQUENCY, ENABLE_LOG)
+  - customize.sh — shows version, port, and log path during install
+  - META-INF/ installer for compatibility with older Magisk Manager
+  - Boot-time logging with version header and config values
+  - Log auto-cleanup on reboot (no stale entries from previous boot)
+  - adb_wifi_enabled=1 set at boot for proper AdbService network initialization
+
+  Changed:
+  - Use persist.adb.tcp.port instead of service.adb.tcp.port — survives reboots, no adbd restart needed
+  - check_adb_status accepts both service.adb.tcp.port and persist.adb.tcp.port as valid TCP indicators
+  - Default STATUS_CHK_FREQUENCY changed from 1s to 5s — reduces overhead, prevents fingerprint prompt spam
+  - Module disable now does nothing instead of calling stop_adb — no interference with USB ADB
+
+  Fixed:
+  - Fingerprint confirmation prompt on every adb connect (caused by adbd restarting every 1s)
+  - "Wireless debugging" toggle not persisting after reboot
+  - ADB not starting when WiFi connected after boot (missing adb_wifi_enabled)
+  - ADB_PORT invalid log spam when config had no port set
+  - service.sh permissions (644 -> 755) after magisk --install-module
+
+[1.1.0] - 2023-07-22
+
+  Original release by mrh929.
+
+  - Auto-enable WiFi ADB on boot
+  - Configurable ADB port
+  - Disable via Magisk Manager
+  - Status check loop with 1s interval

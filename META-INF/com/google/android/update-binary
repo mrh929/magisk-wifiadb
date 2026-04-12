@@ -1,34 +1,33 @@
 #!/sbin/sh
 
-#################
-# Initialization
-#################
+############################################
+# Magisk Module Installer (service-only)
+############################################
 
-umask 022
+SKIPUNZIP=1
 
-# echo before loading util_functions
-ui_print() { echo "$1"; }
-
-require_new_magisk() {
-  ui_print "*******************************"
-  ui_print " Please install Magisk v20.4+! "
-  ui_print "*******************************"
-  exit 1
+# Load Magisk utilities
+[ -f "$NVBASE/util_functions.sh" ] && . "$NVBASE/util_functions.sh" || {
+    echo "ERROR: util_functions.sh not found — update Magisk"
+    exit 1
 }
 
-#########################
-# Load util_functions.sh
-#########################
+# Read module metadata
+unzip -o "$ZIPFILE" "module.prop" -d "$TMPDIR" >&2
+. "$TMPDIR/module.prop" 2>/dev/null
 
-OUTFD=$2
-ZIPFILE=$3
+# Magisk sets MODPATH = $NVBASE/modules_update/$MODID
+ui_print ""
+ui_print "  *** $name $version ***"
+ui_print ""
 
-mount /data 2>/dev/null
+# Extract module files
+ui_print "- Extracting files"
+unzip -o "$ZIPFILE" "module.prop" "service.sh" "config" -d "$MODPATH" >&2
 
-[ -f /data/adb/magisk/util_functions.sh ] || require_new_magisk
-. /data/adb/magisk/util_functions.sh
-[ $MAGISK_VER_CODE -lt 20400 ] && require_new_magisk
+# Permissions
+set_perm_recursive "$MODPATH" root root 0755 0644
+set_perm "$MODPATH/service.sh" root root 0755
 
-install_module
-exit 0
-
+ui_print "- Done — reboot to activate"
+ui_print ""
